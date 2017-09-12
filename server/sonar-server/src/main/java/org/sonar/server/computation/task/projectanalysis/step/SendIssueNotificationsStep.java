@@ -21,11 +21,15 @@ package org.sonar.server.computation.task.projectanalysis.step;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.sonar.api.issue.Issue;
+import org.sonar.api.utils.Duration;
 import org.sonar.core.issue.DefaultIssue;
 import org.sonar.core.util.CloseableIterator;
 import org.sonar.server.computation.task.projectanalysis.analysis.AnalysisMetadataHolder;
@@ -86,7 +90,8 @@ public class SendIssueNotificationsStep implements ComputationStep {
   }
 
   private void doExecute(Component project) {
-    NewIssuesStatistics newIssuesStats = new NewIssuesStatistics();
+    long analysisDate = analysisMetadataHolder.getAnalysisDate();
+    NewIssuesStatistics newIssuesStats = new NewIssuesStatistics(i -> i.isNew() && i.creationDate().getTime() >= truncateToSeconds(analysisDate));
     CloseableIterator<DefaultIssue> issues = issueCache.traverse();
     try {
       processIssues(newIssuesStats, issues, project);
@@ -94,10 +99,19 @@ public class SendIssueNotificationsStep implements ComputationStep {
       issues.close();
     }
     if (newIssuesStats.hasIssues()) {
-      long analysisDate = analysisMetadataHolder.getAnalysisDate();
       sendNewIssuesNotification(newIssuesStats, project, analysisDate);
       sendNewIssuesNotificationToAssignees(newIssuesStats, project, analysisDate);
     }
+  }
+
+  /**
+   * Truncated the analysis date to seconds before comparing it to {@link Issue#creationDate()} is required because
+   * {@link DefaultIssue#setCreationDate(Date)} does it.
+   */
+  private static long truncateToSeconds(long analysisDate) {
+    Instant instant = new Date(analysisDate).toInstant();
+    instant = instant.truncatedTo(ChronoUnit.SECONDS);
+    return Date.from(instant).getTime();
   }
 
   private void processIssues(NewIssuesStatistics newIssuesStats, CloseableIterator<DefaultIssue> issues, Component project) {
@@ -127,7 +141,7 @@ public class SendIssueNotificationsStep implements ComputationStep {
       .setProject(project.getPublicKey(), project.getUuid(), project.getName(), getBranchName())
       .setAnalysisDate(new Date(analysisDate))
       .setStatistics(project.getName(), globalStatistics)
-      .setDebt(globalStatistics.debt());
+      .setDebt(Duration.create(globalStatistics.effort().getTotal()));
     service.deliver(notification);
   }
 
@@ -143,7 +157,7 @@ public class SendIssueNotificationsStep implements ComputationStep {
         .setProject(project.getPublicKey(), project.getUuid(), project.getName(), getBranchName())
         .setAnalysisDate(new Date(analysisDate))
         .setStatistics(project.getName(), assigneeStatistics)
-        .setDebt(assigneeStatistics.debt());
+        .setDebt(Duration.create(assigneeStatistics.effort().getTotal()));
 
       service.deliver(myNewIssuesNotification);
     }
