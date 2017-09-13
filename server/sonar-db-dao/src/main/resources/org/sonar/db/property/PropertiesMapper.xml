@@ -4,29 +4,50 @@
 <mapper namespace="org.sonar.db.property.PropertiesMapper">
 
   <select id="findUsersForNotification" parameterType="map" resultType="String">
-    select
+    SELECT
       u.login
-    from
+    FROM
       users u
-    inner join properties p on
-      p.user_id=u.id
-    <choose>
-      <when test="projectUuid == null">
-        where
-          p.prop_key = #{notifKey,jdbcType=VARCHAR}
-          and p.text_value = 'true'
-          and p.resource_id is null
-      </when>
-      <otherwise>
-        inner join projects c on
-          c.id=p.resource_id
-        where
-          p.prop_key = #{notifKey,jdbcType=VARCHAR}
-          and p.text_value = 'true'
-          and c.uuid = #{projectUuid,jdbcType=VARCHAR}
-          and p.resource_id is not null
-      </otherwise>
-    </choose>
+    INNER JOIN properties p ON p.user_id = u.id
+    INNER JOIN projects c ON c.id = p.resource_id
+    WHERE
+      c.uuid = #{projectUuid,jdbcType=VARCHAR}
+      AND p.prop_key = #{notifKey,jdbcType=VARCHAR}
+      AND p.text_value = 'true'
+      AND p.resource_id IS NULL
+      AND (
+        c.private = ${_false}
+        OR EXISTS (
+          SELECT 1
+          FROM user_roles ur
+          WHERE
+            ur.organization_uuid = c.organization_uuid
+            AND ur.user_id = u.id
+            AND ur.role = 'user'
+        ) OR EXISTS (
+          SELECT 1
+          FROM group_roles gr
+          INNER JOIN groups_users gu ON gr.group_id = gu.group_id
+          WHERE
+            gr.organization_uuid = c.organization_uuid
+            AND gu.user_id = u.id
+            AND gr.role = 'user'
+        )
+      )
+
+  UNION
+
+    SELECT
+      u.login
+    FROM
+      users u
+    INNER JOIN properties p ON p.user_id = u.id
+    INNER JOIN projects c ON c.id=p.resource_id
+    WHERE
+      c.uuid = #{projectUuid,jdbcType=VARCHAR}
+      AND p.prop_key = #{notifKey,jdbcType=VARCHAR}
+      AND p.text_value = 'true'
+      AND p.resource_id IS NOT NULL
   </select>
 
   <select id="findNotificationSubscribers" parameterType="map" resultType="String">

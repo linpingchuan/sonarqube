@@ -21,7 +21,6 @@ package org.sonar.server.notification;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import java.io.IOException;
@@ -119,8 +118,7 @@ public class DefaultNotificationManager implements NotificationManager {
    * {@inheritDoc}
    */
   @Override
-  public Multimap<String, NotificationChannel> findSubscribedRecipientsForDispatcher(NotificationDispatcher dispatcher,
-    @Nullable String projectUuid) {
+  public Multimap<String, NotificationChannel> findSubscribedRecipientsForDispatcher(NotificationDispatcher dispatcher, String projectUuid) {
     String dispatcherKey = dispatcher.getKey();
 
     SetMultimap<String, NotificationChannel> recipients = HashMultimap.create();
@@ -128,12 +126,8 @@ public class DefaultNotificationManager implements NotificationManager {
       String channelKey = channel.getKey();
 
       // Find users subscribed globally to the dispatcher (i.e. not on a specific project)
-      addUsersToRecipientListForChannel(propertiesDao.selectUsersForNotification(dispatcherKey, channelKey, null), recipients, channel);
-
-      if (projectUuid != null) {
-        // Find users subscribed to the dispatcher specifically for the project
-        addUsersToRecipientListForChannel(propertiesDao.selectUsersForNotification(dispatcherKey, channelKey, projectUuid), recipients, channel);
-      }
+      // And users subscribed to the dispatcher specifically for the project
+      addUsersToRecipientListForChannel(propertiesDao.selectUsersForNotification(dispatcherKey, channelKey, projectUuid), recipients, channel);
     }
 
     return recipients;
@@ -161,5 +155,4 @@ public class DefaultNotificationManager implements NotificationManager {
       recipients.put(username, channel);
     }
   }
-
 }

@@ -82,13 +82,13 @@ public class PropertiesDaoTest {
   public void shouldFindUsersForNotification() throws SQLException {
     ComponentDto project1 = insertProject("uuid_45");
     ComponentDto project2 = insertProject("uuid_56");
-    int userId1 = insertUser("user1");
-    int userId2 = insertUser("user2");
-    int userId3 = insertUser("user3");
-    insertProperty("notification.NewViolations.Email", "true", project1.getId(), userId2);
-    insertProperty("notification.NewViolations.Twitter", "true", null, userId3);
-    insertProperty("notification.NewViolations.Twitter", "true", project2.getId(), userId1);
-    insertProperty("notification.NewViolations.Twitter", "true", project2.getId(), userId3);
+    UserDto user1 = insertUser("user1");
+    UserDto user2 = insertUser("user2");
+    UserDto user3 = insertUser("user3");
+    insertProperty("notification.NewViolations.Email", "true", project1.getId(), user2.getId());
+    insertProperty("notification.NewViolations.Twitter", "true", null, user3.getId());
+    insertProperty("notification.NewViolations.Twitter", "true", project2.getId(), user1.getId());
+    insertProperty("notification.NewViolations.Twitter", "true", project2.getId(), user3.getId());
 
     assertThat(underTest.selectUsersForNotification("NewViolations", "Email", null))
       .isEmpty();
@@ -98,10 +98,6 @@ public class PropertiesDaoTest {
 
     assertThat(underTest.selectUsersForNotification("NewViolations", "Email", "uuid_45"))
       .hasSize(1).containsOnly("user2");
-
-    assertThat(underTest.selectUsersForNotification("NewViolations", "Twitter", null))
-      .hasSize(1)
-      .containsOnly("user3");
 
     assertThat(underTest.selectUsersForNotification("NewViolations", "Twitter", "uuid_78"))
       .isEmpty();
@@ -113,8 +109,8 @@ public class PropertiesDaoTest {
 
   @Test
   public void findNotificationSubscribers() throws SQLException {
-    int userId1 = insertUser("user1");
-    int userId2 = insertUser("user2");
+    int userId1 = insertUser("user1").getId();
+    int userId2 = insertUser("user2").getId();
     ComponentDto projectDto = insertProject("PROJECT_A");
     long projectId = projectDto.getId();
     String projectKey = projectDto.getDbKey();
@@ -150,8 +146,8 @@ public class PropertiesDaoTest {
 
   @Test
   public void hasNotificationSubscribers() throws SQLException {
-    int userId1 = insertUser("user1");
-    int userId2 = insertUser("user2");
+    int userId1 = insertUser("user1").getId();
+    int userId2 = insertUser("user2").getId();
     Long projectId = insertProject("PROJECT_A").getId();
     // global subscription
     insertProperty("notification.DispatcherWithGlobalSubscribers.Email", "true", null, userId2);
@@ -380,7 +376,7 @@ public class PropertiesDaoTest {
   @Test
   public void select_global_properties_by_keys() throws Exception {
     insertProject("A");
-    int userId = insertUser("B");
+    int userId = insertUser("B").getId();
 
     String key = "key";
     String anotherKey = "anotherKey";
@@ -822,7 +818,6 @@ public class PropertiesDaoTest {
       .hasNoResourceId()
       .hasUserId(100)
       .hasTextValue("new_user");
-
   }
 
   @Test
@@ -1076,12 +1071,12 @@ public class PropertiesDaoTest {
     return project;
   }
 
-  private int insertUser(String login) {
+  private UserDto insertUser(String login) {
     UserDto dto = new UserDto().setLogin(login);
     DbSession session = dbTester.getSession();
     dbClient.userDao().insert(session, dto);
     session.commit();
-    return dto.getId();
+    return dto;
   }
 
   private static PropertyDtoAssert assertThatDto(@Nullable PropertyDto dto) {
