@@ -101,7 +101,7 @@ public class EsSettingsTest {
     props.set(ProcessProperties.PATH_HOME, randomAlphanumeric(12));
     props.set(ProcessProperties.PATH_TEMP, randomAlphanumeric(12));
     props.set(ProcessProperties.PATH_LOGS, randomAlphanumeric(12));
-    props.set(ProcessProperties.CLUSTER_NAME, randomAlphanumeric(12));
+    props.set(CLUSTER_NAME, randomAlphanumeric(12));
     return props;
   }
 
