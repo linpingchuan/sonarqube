@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should render correctly 1`] = `
+<BooleanItem
+  value={true}
+/>
+`;
+
+exports[`should render correctly 2`] = `
+<code>
+  bar
+</code>
+`;
+
+exports[`should render correctly 3`] = `
+<code>
+  2
+</code>
+`;
+
+exports[`should render correctly 4`] = `
+<ObjectItem
+  value={
+    Object {
+      "bar": "baz",
+    }
+  }
+/>
+`;
