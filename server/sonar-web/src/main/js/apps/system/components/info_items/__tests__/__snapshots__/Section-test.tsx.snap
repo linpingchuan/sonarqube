@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should render correctly 1`] = `
+<div
+  className="big-spacer-bottom"
+>
+  <h3
+    className="spacer-bottom"
+  >
+    foo
+  </h3>
+  <table
+    className="data zebra"
+    id="foo"
+  >
+    <tbody>
+      <tr>
+        <td
+          className="thin"
+        >
+          <div
+            style={
+              Object {
+                "overflow": "hidden",
+                "textOverflow": "ellipsis",
+                "width": "25vw",
+              }
+            }
+          >
+            foo
+          </div>
+        </td>
+        <td
+          style={
+            Object {
+              "wordBreak": "break-all",
+            }
+          }
+        >
+          <ValueItem
+            name="foo"
+            value={1}
+          />
+        </td>
+      </tr>
+      <tr>
+        <td
+          className="thin"
+        >
+          <div
+            style={
+              Object {
+                "overflow": "hidden",
+                "textOverflow": "ellipsis",
+                "width": "25vw",
+              }
+            }
+          >
+            bar
+          </div>
+        </td>
+        <td
+          style={
+            Object {
+              "wordBreak": "break-all",
+            }
+          }
+        >
+          <ValueItem
+            name="bar"
+            value="Bar"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td
+          className="thin"
+        >
+          <div
+            style={
+              Object {
+                "overflow": "hidden",
+                "textOverflow": "ellipsis",
+                "width": "25vw",
+              }
+            }
+          >
+            baz
+          </div>
+        </td>
+        <td
+          style={
+            Object {
+              "wordBreak": "break-all",
+            }
+          }
+        >
+          <ValueItem
+            name="baz"
+            value={false}
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
